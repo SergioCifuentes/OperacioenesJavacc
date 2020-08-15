@@ -1,0 +1,75 @@
+options {
+	STATIC = false;
+}
+
+PARSER_BEGIN(Adder)
+        
+	public class Adder {
+            private Integer valx;
+            private Integer valy;
+            private Integer valz;
+
+            public Adder(Integer valx,Integer valy,Integer valz){
+                this.valx=valx;
+                this.valy=valy;
+                this.valz=valz;
+            }
+
+           public Integer getValx(){
+            return this.valx;
+           }
+           public Integer getValy(){
+            return this.valy;
+           }
+            public Integer getValz(){
+            return this.valz;
+           }
+        }
+
+PARSER_END(Adder)
+
+SKIP  : { " " | "\n" | "\r" | "\r\n" }
+TOKEN : { < MAS : "+" > | < MENOS : "-" > | < MUL : "*" > | < DIV : "/" >}
+TOKEN : { < LETRAX : "X" > | < LETRAY : "Y" > | < LETRAZ : "Z" >}
+TOKEN : { < IGUAL : "=" > }
+TOKEN : { < PUNTOCOMA : ";" > | < COMA : "," >}
+TOKEN : { < NUMBER : (["0"-"9"])+ > }
+TOKEN : { <IDENTIFIER: <LETTER>(<LETTER>|<NUMBER>)*> | <LETTER: (["a"-"z","A"-"Z"])>|<CADENA: ("\"")<IDENTIFIER>("\"")>}
+
+Integer Start(): {Adder declaraciones; Integer resultado;}{
+    declaraciones=Z() resultado=X(declaraciones) { return resultado;}
+}
+
+Adder Z():{Token valx;Token valy;Token valz;}{
+    <LETRAX> <IGUAL> valx=<NUMBER> <COMA> 
+    <LETRAY> <IGUAL> valy=<NUMBER> <COMA> 
+    <LETRAZ> <IGUAL> valz=<NUMBER> <PUNTOCOMA> {return new Adder(Integer.parseInt(valx.image),Integer.parseInt(valy.image),Integer.parseInt(valz.image));}
+}
+
+Integer X(Adder letras):{Integer resT; Integer resXP;}{    
+    resT=T(letras) resXP=XP(letras,resT){return resXP;} 
+}
+
+Integer XP(Adder letras, Integer resT):{Integer resultT,resXP;}{
+    <MAS> resultT=T(letras) resXP=XP(letras,resT+resultT) {return resXP;}
+    |<MENOS> resultT=T(letras) resXP=XP(letras,resT-resultT) {return resXP;}
+    |   {return resT;}
+}
+
+Integer T(Adder letras):{Integer numero; Integer resultado;}{
+    numero=F(letras) resultado=TP(numero,letras)  {return resultado;}
+}
+
+Integer TP(Integer val,Adder letras):{Integer numero;Integer resultado;}{
+ <MUL> numero=F(letras) resultado=TP(val*numero,letras)  {return resultado;}
+    | <DIV> numero=F(letras) resultado=TP(val/numero,letras) {return resultado;}                       
+    | {return val;}                                                    
+}
+
+int F(Adder letras):{Token numero;}{
+    numero=<NUMBER> {return Integer.parseInt(numero.image);}
+    |<LETRAX> {return letras.getValx();}
+    |<LETRAY> {return letras.getValy();}
+    |<LETRAZ> {return letras.getValz();}
+}
+
